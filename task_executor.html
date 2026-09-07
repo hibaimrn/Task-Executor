@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dash</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f3f1ec;
+    --surface: #ffffff;
+    --surface-2: #faf8f3;
+    --ink: #1d1b16;
+    --ink-2: #706b5f;
+    --ink-3: #9a9488;
+    --line: #e6e1d6;
+    --line-2: #d5cfc1;
+    --brand: #7a2e28;
+    --brand-2: #632420;
+    --brand-wash: #f6eae8;
+    --ochre: #c8842a;
+    --ochre-wash: #f9efdc;
+    --forest: #2f5c46;
+    --forest-wash: #e4efe8;
+    --sans: "DM Sans", -apple-system, system-ui, sans-serif;
+    --serif: "Playfair Display", Georgia, serif;
+    --mono: "DM Mono", ui-monospace, monospace;
+    --shadow: 0 1px 2px rgba(29,27,22,0.04), 0 8px 24px -12px rgba(29,27,22,0.14);
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; font-family: var(--sans); color: var(--ink); background: var(--bg); line-height: 1.5; -webkit-font-smoothing: antialiased; font-size: 15px; }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+  /* app bar */
+  .appbar { position: sticky; top: 0; z-index: 20; background: rgba(243,241,236,0.86); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+  .appbar-in { max-width: 940px; margin: 0 auto; padding: 12px 22px; display: flex; align-items: center; gap: 12px; }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand .dot { width: 30px; height: 30px; border-radius: 9px; background: var(--brand); display: grid; place-items: center; }
+  .brand .dot svg { width: 17px; height: 17px; }
+  .brand .name { font-family: var(--serif); font-weight: 700; font-size: 19px; letter-spacing: -0.3px; }
+  .appbar .tag { margin-left: auto; font-family: var(--mono); font-size: 11px; color: var(--ink-2); background: var(--surface); border: 1px solid var(--line); padding: 5px 11px; border-radius: 100px; }
+
+  .shell { max-width: 940px; margin: 0 auto; padding: 26px 22px 60px; }
+
+  /* intro strip */
+  .intro { margin-bottom: 20px; }
+  .intro h1 { font-family: var(--serif); font-weight: 600; font-size: 26px; letter-spacing: -0.5px; margin: 0 0 5px; }
+  .intro p { color: var(--ink-2); margin: 0; font-size: 15px; }
+
+  /* panel */
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+  .panel-body { padding: 22px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 620px) { .grid { grid-template-columns: 1fr; } }
+  .field { margin-bottom: 16px; }
+  .field.full { grid-column: 1 / -1; }
+  label { display: block; font-size: 12.5px; font-weight: 600; color: var(--ink-2); margin-bottom: 7px; }
+  label .opt { font-weight: 400; color: var(--ink-3); }
+  .control { width: 100%; padding: 11px 13px; border: 1px solid var(--line-2); background: var(--surface-2); font-family: var(--sans); font-size: 14.5px; color: var(--ink); border-radius: 10px; transition: border-color .15s, box-shadow .15s, background .15s; }
+  .control::placeholder { color: var(--ink-3); }
+  .control:focus { outline: none; border-color: var(--brand); background: #fff; box-shadow: 0 0 0 3px var(--brand-wash); }
+  textarea.control { resize: vertical; min-height: 46px; line-height: 1.45; }
+  select.control { appearance: none; cursor: pointer; padding-right: 34px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23706b5f' stroke-width='2' stroke-linecap='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
+
+  .chips { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 10px; }
+  .chip { font-size: 12.5px; padding: 6px 12px; border-radius: 100px; cursor: pointer; background: var(--surface-2); color: var(--ink-2); border: 1px solid var(--line-2); transition: all .15s; }
+  .chip:hover { background: var(--brand-wash); color: var(--brand); border-color: var(--brand); }
+
+  .panel-foot { display: flex; align-items: center; gap: 16px; padding: 16px 22px; border-top: 1px solid var(--line); background: var(--surface-2); flex-wrap: wrap; }
+  .go { display: inline-flex; align-items: center; gap: 9px; padding: 12px 22px; border: none; background: var(--brand); color: #fff; font-family: var(--sans); font-size: 14.5px; font-weight: 600; cursor: pointer; border-radius: 10px; transition: background .15s, transform .1s; }
+  .go:hover:not(:disabled) { background: var(--brand-2); } .go:active:not(:disabled) { transform: translateY(1px); }
+  .go:disabled { background: var(--line-2); color: var(--ink-3); cursor: not-allowed; }
+  .go svg { width: 16px; height: 16px; }
+  .foot-note { font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
+  .banner { background: var(--brand-wash); color: var(--brand); border: 1px solid #e8cdc9; font-size: 13px; padding: 11px 14px; border-radius: 10px; margin-top: 14px; display: none; }
+
+  /* loading */
+  .loading { display: none; text-align: center; padding: 60px 20px; }
+  .spinner { width: 34px; height: 34px; border: 3px solid var(--line-2); border-top-color: var(--brand); border-radius: 50%; margin: 0 auto; animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading p { margin-top: 18px; color: var(--ink-2); font-size: 14.5px; }
+
+  /* plan */
+  .plan { display: none; }
+  .plan-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 18px; flex-wrap: wrap; }
+  .plan-top h2 { font-family: var(--serif); font-weight: 600; font-size: 24px; letter-spacing: -0.4px; margin: 0 0 6px; line-height: 1.2; }
+  .plan-top .meta { font-family: var(--mono); font-size: 12px; color: var(--ink-2); }
+  .plan-actions { display: flex; gap: 8px; }
+  .ghost { font-size: 13px; font-weight: 500; padding: 8px 14px; border: 1px solid var(--line-2); background: var(--surface); color: var(--ink); border-radius: 9px; cursor: pointer; transition: all .15s; }
+  .ghost:hover { border-color: var(--brand); color: var(--brand); }
+
+  .summary { background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--brand); border-radius: 10px; padding: 14px 16px; font-size: 14.5px; margin-bottom: 18px; box-shadow: var(--shadow); }
+
+  /* progress bar row */
+  .progress { display: flex; align-items: center; gap: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; margin-bottom: 18px; box-shadow: var(--shadow); }
+  .progress .pct { font-family: var(--serif); font-weight: 700; font-size: 24px; color: var(--forest); min-width: 56px; }
+  .progress .track { flex: 1; height: 8px; background: var(--line); border-radius: 100px; overflow: hidden; }
+  .progress .track > i { display: block; height: 100%; width: 0; background: var(--forest); border-radius: 100px; transition: width .45s ease; }
+  .progress .count { font-family: var(--mono); font-size: 12px; color: var(--ink-2); white-space: nowrap; }
+
+  /* next up */
+  .nextup { background: var(--ochre-wash); border: 1px solid #eeddbe; border-radius: 12px; padding: 16px 18px; margin-bottom: 22px; }
+  .nextup h4 { font-family: var(--mono); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: #a86a17; margin: 0 0 12px; }
+  .nextup .n-item { display: flex; gap: 12px; align-items: baseline; padding: 8px 0; }
+  .nextup .n-item + .n-item { border-top: 1px solid #eeddbe; }
+  .nextup .n-num { font-family: var(--serif); font-weight: 700; font-style: italic; font-size: 18px; color: var(--ochre); width: 22px; flex: 0 0 auto; }
+  .nextup .n-txt { font-size: 14.5px; font-weight: 500; }
+
+  /* milestones — product list, contained */
+  .milestone { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; margin-bottom: 14px; overflow: hidden; box-shadow: var(--shadow); }
+  .ms-head { display: flex; align-items: center; gap: 13px; padding: 15px 18px; border-bottom: 1px solid var(--line); background: var(--surface-2); }
+  .ms-num { font-family: var(--serif); font-weight: 700; font-size: 16px; color: #fff; background: var(--brand); width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; flex: 0 0 auto; }
+  .ms-info { flex: 1; min-width: 0; }
+  .ms-info h3 { font-size: 15.5px; font-weight: 600; margin: 0 0 2px; }
+  .ms-info p { font-size: 13px; color: var(--ink-2); margin: 0; }
+  .ms-window { font-family: var(--mono); font-size: 11px; color: var(--brand); background: var(--brand-wash); border-radius: 100px; padding: 5px 11px; flex: 0 0 auto; white-space: nowrap; }
+
+  .tasks { list-style: none; margin: 0; padding: 6px; }
+  .task { display: flex; align-items: flex-start; gap: 12px; padding: 11px 12px; border-radius: 9px; transition: background .12s; }
+  .task:hover { background: var(--surface-2); }
+  .task + .task { border-top: 1px solid var(--line); }
+  .box { flex: 0 0 auto; width: 22px; height: 22px; border: 2px solid var(--line-2); border-radius: 6px; cursor: pointer; margin-top: 1px; display: grid; place-items: center; transition: all .15s; }
+  .box:hover { border-color: var(--forest); }
+  .task.done .box { background: var(--forest); border-color: var(--forest); }
+  .box svg { width: 13px; height: 13px; opacity: 0; transition: opacity .15s; }
+  .task.done .box svg { opacity: 1; }
+  .task .body { flex: 1; min-width: 0; }
+  .task .txt { font-size: 14.5px; line-height: 1.4; font-weight: 500; }
+  .task.done .txt { text-decoration: line-through; text-decoration-color: var(--forest); color: var(--ink-2); }
+  .task .why { font-size: 12.5px; color: var(--ink-2); margin-top: 3px; }
+  .task .tags { display: flex; gap: 7px; margin-top: 7px; flex-wrap: wrap; align-items: center; }
+  .tag-day { font-family: var(--mono); font-size: 11px; color: var(--ink-2); background: var(--surface-2); border: 1px solid var(--line); border-radius: 100px; padding: 2px 9px; }
+  .prio { font-family: var(--mono); font-size: 10px; font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase; padding: 2px 9px; border-radius: 100px; }
+  .prio.high { background: var(--brand-wash); color: var(--brand); }
+  .prio.medium { background: var(--ochre-wash); color: #a86a17; }
+  .prio.low { background: var(--forest-wash); color: var(--forest); }
+
+  .celebrate { display: none; text-align: center; background: var(--forest-wash); border: 1px solid #c8e0d3; color: var(--forest); border-radius: 12px; padding: 18px; font-family: var(--serif); font-weight: 600; font-size: 17px; margin-bottom: 16px; }
+</style>
+</head>
+<body>
+
+<div class="appbar">
+  <div class="appbar-in">
+    <div class="brand">
+      <div class="dot"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg></div>
+      <div class="name">Dash</div>
+    </div>
+    <div class="tag">bring your own key</div>
+  </div>
+</div>
+
+<div class="shell">
+
+  <div id="setupWrap">
+    <div class="intro">
+      <h1>Turn a goal into a working plan</h1>
+      <p>Milestones, day-by-day tasks, and the exact next step — generated in one pass.</p>
+    </div>
+
+    <div class="panel">
+      <div class="panel-body">
+        <div class="field full">
+          <label for="goal">Goal</label>
+          <textarea id="goal" class="control" placeholder="e.g. Launch a side project in 2 weeks"></textarea>
+          <div class="chips" id="examples"></div>
+        </div>
+        <div class="grid">
+          <div class="field">
+            <label for="timeframe">Timeframe</label>
+            <input type="text" id="timeframe" class="control" placeholder="2 weeks" value="2 weeks">
+          </div>
+          <div class="field">
+            <label for="hours">Time per day</label>
+            <select id="hours" class="control">
+              <option>30 minutes</option>
+              <option>1 hour</option>
+              <option selected>2 hours</option>
+              <option>3-4 hours</option>
+              <option>Full time</option>
+            </select>
+          </div>
+          <div class="field full">
+            <label for="context">Context <span class="opt">— optional</span></label>
+            <input type="text" id="context" class="control" placeholder="e.g. I know React but not backend; solo; evenings only">
+          </div>
+          <div class="field full">
+            <label for="apikey">OpenAI API key</label>
+            <input type="password" id="apikey" class="control" placeholder="sk-..." autocomplete="off">
+          </div>
+        </div>
+        <div class="banner" id="banner"></div>
+      </div>
+      <div class="panel-foot">
+        <button class="go" id="go" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg>
+          Break it down
+        </button>
+        <span class="foot-note">Key sent only to OpenAI · nothing stored on a server</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    <p id="loadmsg">Thinking through your goal…</p>
+  </div>
+
+  <div class="plan" id="plan">
+    <div class="plan-top">
+      <div>
+        <h2 id="planGoal"></h2>
+        <div class="meta" id="planMeta"></div>
+      </div>
+      <div class="plan-actions">
+        <button class="ghost" id="copy">Copy</button>
+        <button class="ghost" id="download">Download</button>
+        <button class="ghost" id="regen">New goal</button>
+      </div>
+    </div>
+
+    <div class="summary" id="planSummary"></div>
+
+    <div class="progress">
+      <div class="pct" id="progressPct">0%</div>
+      <div class="track"><i id="progressFill"></i></div>
+      <div class="count" id="progressCount"></div>
+    </div>
+
+    <div class="nextup" id="nextup">
+      <h4>Start here — your next 3 moves</h4>
+      <div id="nextupList"></div>
+    </div>
+
+    <div class="celebrate" id="celebrate">✦ Every task done. Go ship it.</div>
+
+    <div id="milestones"></div>
+  </div>
+
+</div>
+
+<script>
+const MODEL = "gpt-4o";
+const $ = id => document.getElementById(id);
+
+let PLAN = null;
+
+const EXAMPLES = [
+  "Launch a side project in 2 weeks",
+  "Get in shape for a 10k run in a month",
+  "Write and publish an ebook in 30 days",
+  "Prepare for a job switch in 6 weeks"
+];
+$("examples").innerHTML = EXAMPLES.map(e => `<button class="chip">${e}</button>`).join("");
+document.querySelectorAll(".chip").forEach(b => b.addEventListener("click", () => { $("goal").value = b.textContent; maybeEnable(); }));
+
+["goal","apikey"].forEach(id => $(id).addEventListener("input", maybeEnable));
+function maybeEnable() { $("go").disabled = !($("goal").value.trim() && $("apikey").value.trim()); }
+
+function showBanner(t) { const b=$("banner"); b.textContent=t; b.style.display="block"; setTimeout(()=>b.style.display="none", 7000); }
+
+const LOAD_MSGS = ["Thinking through your goal…","Mapping the milestones…","Scheduling daily actions…","Weighing priorities…","Deciding what comes first…"];
+let loadTimer = null;
+function startLoading() {
+  $("setupWrap").style.display = "none";
+  $("plan").style.display = "none";
+  $("loading").style.display = "block";
+  let i = 0; $("loadmsg").textContent = LOAD_MSGS[0];
+  loadTimer = setInterval(() => { i=(i+1)%LOAD_MSGS.length; $("loadmsg").textContent = LOAD_MSGS[i]; }, 1600);
+}
+function stopLoading() { clearInterval(loadTimer); $("loading").style.display = "none"; }
+
+$("go").addEventListener("click", generate);
+
+async function generate() {
+  const goal = $("goal").value.trim();
+  const timeframe = $("timeframe").value.trim() || "a reasonable timeframe";
+  const hours = $("hours").value;
+  const context = $("context").value.trim();
+  const apiKey = $("apikey").value.trim();
+  if (!goal || !apiKey) return;
+
+  startLoading();
+
+  const sys = `You are an expert planning coach. Given a goal, produce a concrete, motivating execution plan broken into milestones and daily action items. Reason about sequencing and priority: what must happen before what, and what matters most.
+
+Return ONLY a JSON object (no markdown fences) in exactly this shape:
+{
+  "summary": "<2-3 sentence framing: the strategy and the single biggest risk to manage>",
+  "milestones": [
+    {
+      "title": "<short milestone name>",
+      "focus": "<one sentence on what 'done' looks like>",
+      "window": "<which days, e.g. 'Days 1-3'>",
+      "tasks": [
+        { "text": "<specific action, starts with a verb>", "why": "<one short clause on why it matters or unblocks>", "day": "<e.g. 'Day 1'>", "priority": "high" | "medium" | "low" }
+      ]
+    }
+  ],
+  "nextSteps": ["<the very first concrete action to take right now>", "<second>", "<third>"]
+}
+Rules:
+- 3 to 5 milestones. Each milestone has 2-5 tasks.
+- Tasks must be concrete and doable in the user's daily time budget, not vague advice.
+- Order milestones and tasks in the sequence they should be done.
+- Set priority based on impact and whether it unblocks other work.
+- nextSteps are the 3 things to do first, drawn from the earliest high-priority tasks.
+- Keep it realistic for the stated timeframe and daily hours.`;
+
+  const user = `Goal: ${goal}
+Timeframe: ${timeframe}
+Time available per day: ${hours}
+${context ? "Context: " + context : "No extra context provided."}`;
+
+  try {
+    const resp = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + apiKey },
+      body: JSON.stringify({
+        model: MODEL,
+        messages: [ { role: "system", content: sys }, { role: "user", content: user } ],
+        temperature: 0.4,
+        response_format: { type: "json_object" }
+      })
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json().catch(()=>({}));
+      stopLoading(); $("setupWrap").style.display = "block";
+      showBanner("OpenAI error: " + (err.error?.message || (resp.status + " " + resp.statusText)) + ". Check your key and try again.");
+      return;
+    }
+
+    const data = await resp.json();
+    let parsed;
+    try { parsed = JSON.parse(data.choices[0].message.content); }
+    catch { stopLoading(); $("setupWrap").style.display="block"; showBanner("The plan came back malformed. Try again, or simplify the goal."); return; }
+
+    PLAN = normalize(parsed, goal, timeframe, hours);
+    stopLoading();
+    renderPlan();
+  } catch (e) {
+    stopLoading(); $("setupWrap").style.display = "block";
+    showBanner("Request failed: " + e.message + ". Check your connection and key.");
+  }
+}
+
+function normalize(p, goal, timeframe, hours) {
+  const ms = Array.isArray(p.milestones) ? p.milestones : [];
+  return {
+    goal, timeframe, hours,
+    summary: p.summary || "",
+    milestones: ms.map(m => ({
+      title: m.title || "Milestone",
+      focus: m.focus || "",
+      window: m.window || "",
+      tasks: (Array.isArray(m.tasks) ? m.tasks : []).map(t => ({
+        text: t.text || "",
+        why: t.why || "",
+        day: t.day || "",
+        priority: ["high","medium","low"].includes((t.priority||"").toLowerCase()) ? t.priority.toLowerCase() : "medium",
+        done: false
+      }))
+    })),
+    nextSteps: Array.isArray(p.nextSteps) ? p.nextSteps.slice(0, 3) : []
+  };
+}
+
+const CHECK = `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+
+function renderPlan() {
+  $("setupWrap").style.display = "none";
+  $("plan").style.display = "block";
+  $("planGoal").textContent = PLAN.goal;
+  $("planMeta").textContent = `${PLAN.timeframe} · ${PLAN.hours}/day · ${PLAN.milestones.length} milestones · ${totalTasks()} tasks`;
+  $("planSummary").textContent = PLAN.summary;
+
+  $("nextupList").innerHTML = PLAN.nextSteps.map((s,i) =>
+    `<div class="n-item"><div class="n-num">${i+1}</div><div class="n-txt">${escapeHtml(s)}</div></div>`
+  ).join("");
+  $("nextup").style.display = PLAN.nextSteps.length ? "block" : "none";
+
+  const host = $("milestones");
+  host.innerHTML = "";
+  PLAN.milestones.forEach((m, mi) => {
+    const el = document.createElement("div");
+    el.className = "milestone";
+    el.innerHTML = `
+      <div class="ms-head">
+        <div class="ms-num">${mi+1}</div>
+        <div class="ms-info"><h3>${escapeHtml(m.title)}</h3><p>${escapeHtml(m.focus)}</p></div>
+        ${m.window ? `<div class="ms-window">${escapeHtml(m.window)}</div>` : ""}
+      </div>
+      <ul class="tasks">
+        ${m.tasks.map((t, ti) => `
+          <li class="task${t.done?' done':''}" data-mi="${mi}" data-ti="${ti}">
+            <div class="box" role="checkbox" aria-checked="${t.done}" tabindex="0">${CHECK}</div>
+            <div class="body">
+              <div class="txt">${escapeHtml(t.text)}</div>
+              ${t.why ? `<div class="why">${escapeHtml(t.why)}</div>` : ""}
+              <div class="tags">
+                ${t.day ? `<span class="tag-day">${escapeHtml(t.day)}</span>` : ""}
+                <span class="prio ${t.priority}">${t.priority}</span>
+              </div>
+            </div>
+          </li>`).join("")}
+      </ul>`;
+    host.appendChild(el);
+  });
+
+  host.querySelectorAll(".task .box").forEach(box => {
+    const toggle = () => {
+      const li = box.closest(".task");
+      const mi = +li.dataset.mi, ti = +li.dataset.ti;
+      PLAN.milestones[mi].tasks[ti].done = !PLAN.milestones[mi].tasks[ti].done;
+      li.classList.toggle("done");
+      box.setAttribute("aria-checked", PLAN.milestones[mi].tasks[ti].done);
+      updateProgress();
+    };
+    box.addEventListener("click", toggle);
+    box.addEventListener("keydown", e => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); toggle(); } });
+  });
+
+  updateProgress();
+  window.scrollTo(0, 0);
+}
+
+function totalTasks() { return PLAN.milestones.reduce((n,m)=>n+m.tasks.length, 0); }
+function doneTasks() { return PLAN.milestones.reduce((n,m)=>n+m.tasks.filter(t=>t.done).length, 0); }
+function updateProgress() {
+  const total = totalTasks(), done = doneTasks();
+  const pct = total ? Math.round(done/total*100) : 0;
+  $("progressFill").style.width = pct + "%";
+  $("progressPct").textContent = pct + "%";
+  $("progressCount").textContent = done + " / " + total + " done";
+  $("celebrate").style.display = (total && done === total) ? "block" : "none";
+}
+
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+
+$("regen").addEventListener("click", () => { $("plan").style.display="none"; $("setupWrap").style.display="block"; window.scrollTo(0,0); });
+
+function planToText() {
+  let out = `GOAL: ${PLAN.goal}\n${PLAN.timeframe} · ${PLAN.hours}/day\n\n${PLAN.summary}\n\nSTART HERE:\n` + PLAN.nextSteps.map((s,i)=>`  ${i+1}. ${s}`).join("\n") + "\n\n";
+  PLAN.milestones.forEach((m,i) => {
+    out += `MILESTONE ${i+1}: ${m.title}${m.window?" ("+m.window+")":""}\n  ${m.focus}\n`;
+    m.tasks.forEach(t => { out += `  [${t.done?"x":" "}] ${t.day?t.day+": ":""}${t.text} (${t.priority})${t.why?" — "+t.why:""}\n`; });
+    out += "\n";
+  });
+  return out;
+}
+
+function planToMarkdown() {
+  let md = `# ${PLAN.goal}\n\n`;
+  md += `**Timeframe:** ${PLAN.timeframe}  |  **Time per day:** ${PLAN.hours}  |  **Progress:** ${doneTasks()}/${totalTasks()} tasks\n\n`;
+  if (PLAN.summary) md += `> ${PLAN.summary}\n\n`;
+  if (PLAN.nextSteps.length) {
+    md += `## Start here — your next 3 moves\n\n`;
+    PLAN.nextSteps.forEach((s,i) => { md += `${i+1}. ${s}\n`; });
+    md += `\n`;
+  }
+  PLAN.milestones.forEach((m,i) => {
+    md += `## ${i+1}. ${m.title}${m.window ? ` _(${m.window})_` : ""}\n\n`;
+    if (m.focus) md += `_${m.focus}_\n\n`;
+    m.tasks.forEach(t => {
+      const day = t.day ? `**${t.day}:** ` : "";
+      const why = t.why ? ` — ${t.why}` : "";
+      md += `- [${t.done ? "x" : " "}] ${day}${t.text} \`${t.priority}\`${why}\n`;
+    });
+    md += `\n`;
+  });
+  md += `\n---\n_Generated with Dash._\n`;
+  return md;
+}
+
+function slugify(s) {
+  return (s || "plan").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48) || "plan";
+}
+
+function downloadFile(filename, text, mime) {
+  const blob = new Blob([text], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+$("copy").addEventListener("click", () => {
+  navigator.clipboard.writeText(planToText()).then(
+    () => { const b=$("copy"); const o=b.textContent; b.textContent="Copied ✓"; setTimeout(()=>b.textContent=o,1500); },
+    () => showBanner("Couldn't copy to clipboard.")
+  );
+});
+
+$("download").addEventListener("click", () => {
+  const name = `dash-${slugify(PLAN.goal)}.md`;
+  downloadFile(name, planToMarkdown(), "text/markdown;charset=utf-8");
+  const b=$("download"); const o=b.textContent; b.textContent="Downloaded ✓"; setTimeout(()=>b.textContent=o,1500);
+});
+</script>
+</body>
+</html>
